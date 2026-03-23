@@ -24,6 +24,7 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"syscall"
@@ -50,6 +51,18 @@ type MMF struct {
 }
 
 func NewMMF(file *os.File, writable bool, offset int64, length int64) (*MMF, error) {
+	lockMgr := GetProcessLockManager()
+
+	// Acquire a lock for memory mapping operations to prevent race conditions
+	fileName := fmt.Sprintf("mmf-%d", file.Fd())
+	unlock, err := lockMgr.AcquireLock(fileName, DefaultLockTimeout)
+	if err != nil {
+		// Log but continue - MMF has its own synchronization
+		GetLifecycleMgr().Info(fmt.Sprintf("Failed to acquire MMF lock for fd %d: %v", file.Fd(), err))
+	} else {
+		defer unlock()
+	}
+
 	prot, flags := syscall.PROT_READ, syscall.MAP_SHARED // Assume read-only
 	if writable {
 		prot, flags = syscall.PROT_READ|syscall.PROT_WRITE, syscall.MAP_SHARED

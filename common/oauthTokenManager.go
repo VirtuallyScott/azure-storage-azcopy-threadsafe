@@ -96,7 +96,7 @@ func newAzcopyHTTPClient() *http.Client {
 				Timeout:   10 * time.Second,
 				KeepAlive: 10 * time.Second,
 				DualStack: true,
-			}).Dial,                   /*Context*/
+			}).Dial, /*Context*/
 			MaxIdleConns:           0, // No limit
 			MaxIdleConnsPerHost:    1000,
 			IdleConnTimeout:        180 * time.Second,
@@ -409,6 +409,17 @@ func (uotm *UserOAuthTokenManager) UserLogin(tenantID, activeDirectoryEndpoint s
 // If refresh token is expired, the method will fail and return failure reason.
 // Fresh token is persisted if access token or refresh token is changed.
 func (uotm *UserOAuthTokenManager) getCachedTokenInfo(ctx context.Context) (*OAuthTokenInfo, error) {
+	lockMgr := GetProcessLockManager()
+
+	// Acquire a lock for token operations to prevent race conditions
+	unlock, err := lockMgr.AcquireLock("oauth-token-cache", DefaultLockTimeout)
+	if err != nil {
+		// Log but continue without process lock - the credential cache has its own synchronization
+		GetLifecycleMgr().Info(fmt.Sprintf("Failed to acquire token cache lock: %v", err))
+	} else {
+		defer unlock()
+	}
+
 	hasToken, err := uotm.credCache.HasCachedToken()
 	if err != nil {
 		return nil, fmt.Errorf("no cached token found, please log in with azcopy's login command, %w", err)

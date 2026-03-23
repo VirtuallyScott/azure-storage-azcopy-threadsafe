@@ -265,6 +265,17 @@ func (ja *jobsAdmin) JobMgr(jobID common.JobID) (ste.IJobMgr, bool) {
 func (ja *jobsAdmin) JobMgrEnsureExists(jobID common.JobID,
 	level common.LogLevel, commandString string, jobErrorHandler common.JobErrorHandler) ste.IJobMgr {
 
+	lockMgr := common.GetProcessLockManager()
+
+	// Acquire a lock for this job to prevent concurrent access
+	unlock, err := lockMgr.AcquireJobLock(jobID, common.DefaultLockTimeout)
+	if err != nil {
+		// Log the error but continue without process lock (fallback to thread-level sync)
+		common.GetLifecycleMgr().Info(fmt.Sprintf("Failed to acquire job lock for %s: %v", jobID.String(), err))
+	} else {
+		defer unlock()
+	}
+
 	return ja.jobIDToJobMgr.EnsureExists(jobID,
 		func() ste.IJobMgr {
 			// Return existing or new IJobMgr to caller
@@ -277,6 +288,17 @@ func (ja *jobsAdmin) JobMgrEnsureExists(jobID common.JobID,
 // 2. Release the memory allocated for this JobMgr instance.
 // Note: this is not thread safe and only one goroutine should call this for a job.
 func (ja *jobsAdmin) JobMgrCleanUp(jobId common.JobID) {
+	lockMgr := common.GetProcessLockManager()
+
+	// Acquire a lock for this job cleanup to prevent concurrent access
+	unlock, err := lockMgr.AcquireJobLock(jobId, common.DefaultLockTimeout)
+	if err != nil {
+		// Log the error but continue without process lock (fallback to thread-level sync)
+		common.GetLifecycleMgr().Info(fmt.Sprintf("Failed to acquire job lock for cleanup %s: %v", jobId.String(), err))
+	} else {
+		defer unlock()
+	}
+
 	// First thing get the jobMgr.
 	jm, found := ja.JobMgr(jobId)
 

@@ -86,6 +86,17 @@ func (j *jobLifecycleManager) OnComplete() {
 		return // prevent multiple completions
 	}
 
+	// Try to acquire a global lock for job completion operations
+	// This prevents race conditions when multiple processes are involved
+	lockMgr := common.GetProcessLockManager()
+	unlock, err := lockMgr.AcquireGlobalLock("job-completion", 5*time.Second)
+	if err != nil {
+		// Log but continue without process lock - thread-level sync should be sufficient
+		common.GetLifecycleMgr().Info(fmt.Sprintf("Failed to acquire global completion lock: %v", err))
+	} else {
+		defer unlock()
+	}
+
 	j.done = true
 
 	// Execute completion functions

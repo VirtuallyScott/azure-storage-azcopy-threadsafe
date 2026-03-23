@@ -65,6 +65,13 @@ func (jpfn JobPartPlanFileName) Delete() error {
 }
 
 func (jpfn JobPartPlanFileName) Map() *JobPartPlanMMF {
+	lockMgr := common.GetProcessLockManager()
+
+	// Acquire a lock for this plan file to prevent concurrent access
+	unlock, err := lockMgr.AcquirePlanFileLock(string(jpfn), common.DefaultLockTimeout)
+	common.PanicIfErr(err)
+	defer unlock()
+
 	// opening the file with given filename
 	file, err := os.OpenFile(jpfn.GetJobPartPlanPath(), os.O_RDWR, common.DEFAULT_FILE_PERM)
 	common.PanicIfErr(err)
@@ -80,6 +87,15 @@ func (jpfn JobPartPlanFileName) Map() *JobPartPlanMMF {
 
 // createJobPartPlanFile creates the memory map JobPartPlanHeader using the given JobPartOrder and JobPartPlanBlobData
 func (jpfn JobPartPlanFileName) Create(order common.CopyJobPartOrderRequest) {
+	lockMgr := common.GetProcessLockManager()
+
+	// Acquire a lock for this plan file creation to prevent race conditions
+	unlock, err := lockMgr.AcquirePlanFileLock(string(jpfn), common.DefaultLockTimeout)
+	if err != nil {
+		panic(fmt.Errorf("failed to acquire lock for plan file creation %s: %w", jpfn, err))
+	}
+	defer unlock()
+
 	if jpfn.Exists() {
 		panic(fmt.Sprint("Duplicate job created. You probably shouldn't ever see this, but if you do, try cleaning out", jpfn.GetJobPartPlanPath()))
 	}
