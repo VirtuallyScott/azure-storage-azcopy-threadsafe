@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	cleanupHandlers []func()
-	cleanupMux      sync.Mutex
+	cleanupHandlers          []func()
+	cleanupMux               sync.Mutex
 	signalHandlerInitialized sync.Once
 )
 
@@ -18,14 +18,14 @@ var (
 func RegisterCleanupHandler(handler func()) {
 	cleanupMux.Lock()
 	defer cleanupMux.Unlock()
-	
+
 	cleanupHandlers = append(cleanupHandlers, handler)
-	
+
 	// Initialize signal handler on first registration
 	signalHandlerInitialized.Do(func() {
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
-		
+
 		go func() {
 			<-c
 			performCleanup()
@@ -38,7 +38,7 @@ func RegisterCleanupHandler(handler func()) {
 func performCleanup() {
 	cleanupMux.Lock()
 	defer cleanupMux.Unlock()
-	
+
 	for _, handler := range cleanupHandlers {
 		if handler != nil {
 			func() {

@@ -20,6 +20,12 @@ vendor/
 ## Ignore the STE job tracking files
 *.stev*
 
+## Process locking files (thread-safe edition)
+*.lock
+.locks/
+**/.locks/
+**/locks/
+
 ## Ignore the executables
 azcopy*
 
