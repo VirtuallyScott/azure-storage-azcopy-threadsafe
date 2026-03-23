@@ -1,52 +1,110 @@
-# AzCopy v10
-AzCopy v10 is a command-line utility that you can use to copy data to and from containers and file shares in Azure Storage accounts.
-AzCopy V10 presents easy-to-use commands that are optimized for high performance and throughput.
+# azcopy Thread-Safe Edition
 
-## Features and capabilities
+This is a thread-safe and process-safe version of Microsoft's azcopy tool, enhanced with robust inter-process locking capabilities for Unix/Linux/macOS systems.
 
-:white_check_mark: Use with storage accounts that have a hierarchical namespace (Azure Data Lake Storage Gen2).
+## 🚀 Key Features
 
-:white_check_mark: Create containers and file shares.
+### Multi-Process Safety
+- **Process-level locking** using `flock` on Unix/Linux/macOS
+- **Thread-level synchronization** fallback for Windows  
+- **Concurrent operation support** - run multiple azcopy instances safely
+- **Automatic cleanup** on process termination
 
-:white_check_mark: Upload files and directories.
+### Protected Operations
+- Job part plan file creation and mapping
+- Job management and lifecycle operations
+- OAuth token caching and credential management
+- Memory mapped file operations
 
-:white_check_mark: Download files and directories.
+## 🏗️ Automated Builds
 
-:white_check_mark: Copy containers, directories and blobs between storage accounts (Service to Service).
+This repository includes GitHub Actions workflows that automatically build azcopy for multiple platforms:
 
-:white_check_mark: Synchronize data between Local <=> Blob Storage, Blob Storage <=> File Storage, and Local <=> File Storage.
+### Supported Platforms
+- **Linux AMD64** (`azcopy-linux-amd64`)
+- **macOS ARM64** (`azcopy-macos-arm64`) - Apple Silicon
+- **Windows AMD64** (`azcopy-windows-amd64.exe`)
 
-:white_check_mark: Delete blobs or files from an Azure storage account
+### Build Features
+- ✅ **Cross-platform compilation** with optimized static binaries
+- ✅ **Automated testing** on all platforms
+- ✅ **Build artifacts** stored for 30 days
+- ✅ **Release automation** for tagged versions
+- ✅ **Build summaries** with detailed information
 
-:white_check_mark: Copy objects, directories, and buckets from Amazon Web Services (AWS) to Azure Blob Storage (Blobs only).
+### Download Pre-built Binaries
 
-:white_check_mark: Copy objects, directories, and buckets from Google Cloud Platform (GCP) to Azure Blob Storage (Blobs only).
+You can download the latest builds from the [Actions tab](../../actions) or [Releases page](../../releases).
 
-:white_check_mark: List files in a container.
+## 📦 Installation
 
-:white_check_mark: Recover from failures by restarting previous jobs.
+### Quick Install (Pre-built)
+```bash
+# Download latest artifacts from GitHub Actions
+# Or install from releases for tagged versions
+```
 
-## Download AzCopy
-The latest binary for AzCopy along with installation instructions may be found
-[here](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10).
+### Build from Source
+```bash
+git clone https://github.com/VirtuallyScott/azure-storage-azcopy-threadsafe.git
+cd azure-storage-azcopy-threadsafe
+go build -o azcopy
+```
 
-## Find help
+See [BUILD.md](BUILD.md) for detailed build instructions and [INSTALL.md](INSTALL.md) for quick installation guide.
 
-For complete guidance, visit any of these articles on the docs.microsoft.com website.
+## 🔒 Process Locking
 
-:eight_spoked_asterisk: [Get started with AzCopy (download links here)](https://docs.microsoft.com/azure/storage/common/storage-use-azcopy-v10)
+The enhanced locking system provides:
 
-:eight_spoked_asterisk: [Upload files to Azure Blob storage by using AzCopy](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-blobs-upload)
+- **File-based locking** using `github.com/gofrs/flock`
+- **Resource isolation** prevents concurrent access conflicts  
+- **Graceful fallback** if locking fails
+- **Platform-aware implementation** (Unix vs Windows)
 
-:eight_spoked_asterisk: [Download blobs from Azure Blob storage by using AzCopy](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-blobs-download)
+### Usage Example
+```bash
+# These operations are now safe to run concurrently:
+azcopy copy source1/ dest1/ &
+azcopy copy source2/ dest2/ &
+azcopy sync source3/ dest3/ &
+wait
+```
 
-:eight_spoked_asterisk: [Copy blobs between Azure storage accounts by using AzCopy](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-blobs-copy)
+For detailed information, see [docs/ProcessLocking.md](docs/ProcessLocking.md).
 
-:eight_spoked_asterisk: [Synchronize between Local File System/Azure Blob Storage (Gen1)/Azure File Storage by using AzCopy](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-blobs-synchronize)
+## 🧪 Testing
 
-:eight_spoked_asterisk: [Transfer data with AzCopy and file storage](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-files)
+Run the test suite:
+```bash
+go test ./...
+```
 
-:eight_spoked_asterisk: [Transfer data with AzCopy and Amazon S3 buckets](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-s3)
+## 📋 Requirements
+
+- **Go 1.21+** for building from source
+- **Unix/Linux/macOS** for full process-level locking
+- **Windows** supported with thread-level synchronization
+
+## 📖 Documentation
+
+- [BUILD.md](BUILD.md) - Comprehensive build guide
+- [INSTALL.md](INSTALL.md) - Quick installation instructions  
+- [docs/ProcessLocking.md](docs/ProcessLocking.md) - Process locking details
+
+## 🤝 Contributing
+
+This is a fork of Microsoft's azcopy with thread-safety enhancements. For the original project:
+- [Original azcopy repository](https://github.com/Azure/azure-storage-azcopy)
+- [Original documentation](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10)
+
+## 📄 License
+
+This project maintains the same license as the original azcopy project.
+
+---
+
+**Note**: This thread-safe version is designed for environments where multiple azcopy processes need to run concurrently without conflicts. For single-process usage, the original azcopy provides the same functionality.
 
 :eight_spoked_asterisk: [Transfer data with AzCopy and Google GCP buckets](https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-google-cloud)
 
