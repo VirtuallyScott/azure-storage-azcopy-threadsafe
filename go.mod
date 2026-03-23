@@ -33,6 +33,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity/cache v0.3.2
 	github.com/Azure/azure-sdk-for-go/sdk/data/aztables v1.3.0
 	github.com/Azure/go-autorest/autorest/date v0.3.0
+	github.com/gofrs/flock v0.13.0
 	github.com/keybase/go-keychain v0.0.1
 	github.com/spf13/pflag v1.0.5
 	golang.org/x/net v0.49.0
@@ -64,7 +65,6 @@ require (
 	github.com/go-jose/go-jose/v4 v4.1.3 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.3 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
